@@ -1,58 +1,69 @@
-import { createContext, useContext, useMemo, useReducer, type Dispatch, type ReactNode } from 'react';
-import { initialAdminData, type AdminClass, type AdminDataState, type AdminGuardian, type AdminStudent } from '../../data/adminData';
+import { createContext, useContext, useEffect, useMemo, useReducer, useState, type Dispatch, type ReactNode } from 'react';
+import { emptyAdminData, type AdminClass, type AdminDataState, type AdminGuardian, type AdminStudent } from '../../data/adminData';
+import { loadAdminData } from './adminDataService';
 
 export type AdminDataAction =
+  | { type: 'hydrate'; state: AdminDataState }
   | { type: 'save-class'; item: AdminClass }
   | { type: 'save-student'; item: AdminStudent }
   | { type: 'save-guardian'; item: AdminGuardian; studentIds: string[] }
   | { type: 'import-students'; items: AdminStudent[] };
 
-function upsert<T extends { id: string }>(list: T[], item: T): T[] {
-  return list.some((entry) => entry.id === item.id)
-    ? list.map((entry) => entry.id === item.id ? item : entry)
-    : [...list, item];
-}
-
+// The database is the source of truth. The save-* and import-* actions are
+// retained so the shape of the context is unchanged, but they no longer apply:
+// every table is RLS-locked against anon writes until an auth model exists to
+// key write policies on. Guarding here means a disabled button is not the only
+// thing standing between the UI and a rejected mutation.
 export function adminDataReducer(state: AdminDataState, action: AdminDataAction): AdminDataState {
   switch (action.type) {
+    case 'hydrate':
+      return action.state;
     case 'save-class':
-      return { ...state, classes: upsert(state.classes, action.item) };
-    case 'save-student': {
-      const item = { ...action.item, guardianIds: [...new Set(action.item.guardianIds)].slice(0, 2) };
-      return { ...state, students: upsert(state.students, item) };
-    }
-    case 'save-guardian': {
-      const studentIds = new Set(action.studentIds);
-      const students = state.students.map((student) => {
-        const wasLinked = student.guardianIds.includes(action.item.id);
-        const linkedWithoutThisGuardian = student.guardianIds.filter((id) => id !== action.item.id);
-        if (!studentIds.has(student.id)) return wasLinked ? { ...student, guardianIds: linkedWithoutThisGuardian } : student;
-        if (wasLinked) return student;
-        if (linkedWithoutThisGuardian.length >= 2) return student;
-        return { ...student, guardianIds: [...linkedWithoutThisGuardian, action.item.id] };
-      });
-      return { ...state, guardians: upsert(state.guardians, action.item), students };
-    }
-    case 'import-students': {
-      const knownAdmissions = new Set(state.students.map((student) => student.admissionNumber.toLocaleLowerCase()));
-      const additions = action.items
-        .filter((item) => !knownAdmissions.has(item.admissionNumber.toLocaleLowerCase()))
-        .map((item) => ({ ...item, guardianIds: [] }));
-      return { ...state, students: [...state.students, ...additions] };
-    }
+    case 'save-student':
+    case 'save-guardian':
+    case 'import-students':
+      return state;
   }
 }
+
+export type DataStatus = 'loading' | 'ready' | 'error';
 
 interface AdminDataContextValue {
   state: AdminDataState;
   dispatch: Dispatch<AdminDataAction>;
+  status: DataStatus;
+  error: string | null;
+  /** False while the database is read-only, so write controls can be disabled. */
+  readOnly: boolean;
 }
 
 const AdminDataContext = createContext<AdminDataContextValue | null>(null);
 
 export function AdminDataProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(adminDataReducer, initialAdminData);
-  const value = useMemo(() => ({ state, dispatch }), [state]);
+  const [state, dispatch] = useReducer(adminDataReducer, emptyAdminData);
+  const [status, setStatus] = useState<DataStatus>('loading');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    loadAdminData()
+      .then((loaded) => {
+        if (!active) return;
+        dispatch({ type: 'hydrate', state: loaded });
+        setStatus('ready');
+      })
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setError(cause instanceof Error ? cause.message : 'Failed to load records from the database.');
+        setStatus('error');
+      });
+    return () => { active = false; };
+  }, []);
+
+  const value = useMemo(
+    () => ({ state, dispatch, status, error, readOnly: true }),
+    [state, status, error],
+  );
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;
 }
 

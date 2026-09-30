@@ -43,7 +43,7 @@ export function ClassEditorDialog({ open, schoolClass, onClose, onSaved }: { ope
 }
 
 export function ClassDetailDialog({ schoolClass, onClose, onEdit }: { schoolClass: AdminClass | null; onClose: () => void; onEdit: (schoolClass: AdminClass) => void }) {
-  const { state } = useAdminData();
+  const { state, readOnly } = useAdminData();
   if (!schoolClass) return null;
   const teacher = state.teachers.find((item) => item.id === schoolClass.teacherId);
   const students = state.students.filter((student) => student.classId === schoolClass.id);
@@ -59,7 +59,7 @@ export function ClassDetailDialog({ schoolClass, onClose, onEdit }: { schoolClas
         <h3>Students</h3>
         {students.length ? <ul className="simple-record-list">{students.map((student) => <li key={student.id}><span>{student.name}</span><small>{student.admissionNumber}</small></li>)}</ul> : <p className="muted-copy">No students in this class.</p>}
       </div>
-      <div className="dialog__actions"><Button variant="secondary" onClick={onClose}>Close</Button><Button variant="primary" onClick={() => onEdit(schoolClass)}>Edit class</Button></div>
+      <div className="dialog__actions"><Button variant="secondary" onClick={onClose}>Close</Button><Button variant="primary" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => onEdit(schoolClass)}>Edit class</Button></div>
     </Dialog>
   );
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FileUp, Plus } from 'lucide-react';
-import { AdminPageHeading, DemoDataNotice } from '../components/AdminPage';
+import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
 import { Button, Card, CardHeading, DataTable, EmptyState, SearchInput, SelectField, StatusIndicator, Toast } from '../components/ui';
 import type { AdminStudent } from '../data/adminData';
 import { useAdminData } from '../features/admin/AdminDataContext';
@@ -8,7 +8,7 @@ import { ExcelImportDialog } from '../features/students/ExcelImportDialog';
 import { StudentDetailDialog, StudentEditorDialog } from '../features/students/StudentDialogs';
 
 export default function StudentsPage() {
-  const { state } = useAdminData();
+  const { state, readOnly } = useAdminData();
   const [query, setQuery] = useState('');
   const [classFilter, setClassFilter] = useState('all');
   const [editorOpen, setEditorOpen] = useState(false);
@@ -39,8 +39,8 @@ export default function StudentsPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeading eyebrow="DIRECTORY" title="Students" description="Find students by name, admission number, or class. View linked guardians and their palm registration state." actions={<><Button variant="secondary" onClick={() => setImportOpen(true)}><FileUp size={15} aria-hidden="true" />Import Excel</Button><Button variant="primary" onClick={openAdd}><Plus size={15} aria-hidden="true" />Add student</Button></>} />
-      <DemoDataNotice />
+      <AdminPageHeading eyebrow="DIRECTORY" title="Students" description="Find students by name, admission number, or class. View linked guardians and their palm registration state." actions={<><Button variant="secondary" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => setImportOpen(true)}><FileUp size={15} aria-hidden="true" />Import Excel</Button><Button variant="primary" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={openAdd}><Plus size={15} aria-hidden="true" />Add student</Button></>} />
+      <DataSourceNotice />
       <Card className="admin-card">
         <CardHeading title="Student records" description={`${filteredStudents.length} of ${state.students.length} students`} />
         <div className="table-toolbar">
@@ -62,7 +62,7 @@ export default function StudentsPage() {
                   <td>{student.admissionNumber}</td>
                   <td>{schoolClass?.name ?? '—'}</td>
                   <td>{guardians.length ? <div className="guardian-table-list">{guardians.map((guardian) => <span className="guardian-table-line" key={guardian.id}><span>{guardian.name}</span><StatusIndicator label={guardian.palmStatus} tone={guardian.palmStatus === 'Registered' ? 'success' : 'pending'} /></span>)}</div> : <span className="muted-copy">No linked guardians · palm —</span>}</td>
-                  <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingStudent(student)}>View</Button><Button variant="ghost" size="sm" onClick={() => openEdit(student)}>Edit</Button></div></td>
+                  <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingStudent(student)}>View</Button><Button variant="ghost" size="sm" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => openEdit(student)}>Edit</Button></div></td>
                 </tr>
               );
             })}</tbody>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { AdminPageHeading, DemoDataNotice } from '../components/AdminPage';
+import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
 import { Button, Card, CardHeading, DataTable, EmptyState, StatusIndicator } from '../components/ui';
-import { formatTimestamp, type DismissalRequest } from '../data/adminData';
+import { dismissalStatusTone, formatTimestamp, type DismissalRequest } from '../data/adminData';
 import { RequestDetailDialog } from '../features/admin/RequestDetailDialog';
 import { useAdminData } from '../features/admin/AdminDataContext';
 
@@ -13,7 +13,7 @@ export default function DismissalRequestsPage() {
   return (
     <div className="admin-page">
       <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal requests" description="See all requests. Open a request to review its student, guardian, teacher decision, status, and timestamp." />
-      <DemoDataNotice />
+      <DataSourceNotice />
       <Card className="admin-card">
         <CardHeading title="All dismissal requests" description={`${requests.length} requests`} />
         {requests.length ? <DataTable label="All dismissal requests" className="admin-table--requests">
@@ -29,7 +29,7 @@ export default function DismissalRequestsPage() {
               <td>{guardian?.name ?? '—'}</td>
               <td>{formatTimestamp(request.requestedAt)}</td>
               <td>{teacher?.name ?? '—'}</td>
-              <td><StatusIndicator label={request.status} tone={request.status === 'Pending' ? 'pending' : 'success'} /></td>
+              <td><StatusIndicator label={request.status} tone={dismissalStatusTone(request.status)} /></td>
               <td><Button variant="ghost" size="sm" onClick={() => setSelectedRequest(request)}>View</Button></td>
             </tr>;
           })}</tbody>

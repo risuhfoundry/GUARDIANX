@@ -1,4 +1,4 @@
-import { AdminPageHeading, DemoDataNotice } from '../components/AdminPage';
+import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
 import { Card, CardHeading, DataTable, EmptyState, StatusIndicator } from '../components/ui';
 import { useAdminData } from '../features/admin/AdminDataContext';
 
@@ -7,7 +7,7 @@ export default function TeachersPage() {
   return (
     <div className="admin-page">
       <AdminPageHeading eyebrow="DIRECTORY" title="Teachers" description="See teacher names and class assignments only; no HR details are included." />
-      <DemoDataNotice />
+      <DataSourceNotice />
       <Card className="admin-card">
         <CardHeading title="Teacher assignments" description={`${state.teachers.length} teachers`} />
         {state.teachers.length ? <DataTable label="Teacher assignments" className="admin-table--teachers">

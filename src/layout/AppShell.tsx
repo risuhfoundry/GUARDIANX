@@ -4,7 +4,8 @@ import {
   LayoutDashboard, Menu, Settings2, Users, UserRound, X,
   type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Dropdown, IconButton, cx } from '../components/ui';
+import { Avatar, Dropdown, ErrorState, IconButton, Skeleton, cx } from '../components/ui';
+import { useAdminData } from '../features/admin/AdminDataContext';
 
 export const navigationItems = [
   { label: 'Dashboard', icon: LayoutDashboard },
@@ -117,6 +118,22 @@ export function AppShell({ activeSection, onNavigate, children }: { activeSectio
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const mainRef = useRef<HTMLElement | null>(null);
   const isFirstRender = useRef(true);
+  const { status, error } = useAdminData();
+
+  // The badge reuses the existing "demo-badge" styling rather than introducing
+  // a new visual treatment; only the wording changes.
+  const connectionLabel = status === 'ready'
+    ? 'Live database · Supabase'
+    : status === 'error' ? 'Database error' : 'Connecting to database…';
+
+  const body = status === 'loading'
+    ? <div className="page-loading" role="status" aria-label="Loading records"><Skeleton className="page-loading__line" /><Skeleton className="page-loading__line page-loading__line--short" /><Skeleton className="page-loading__block" /></div>
+    : status === 'error'
+      ? <ErrorState
+          title="Could not load records"
+          description={error ?? 'The database could not be reached. No records are shown, because showing nothing is safer than showing stale or invented data.'}
+        />
+      : children;
 
   // Escape closes the mobile drawer, but never while a modal dialog owns the keyboard.
   useEffect(() => {
@@ -178,9 +195,9 @@ export function AppShell({ activeSection, onNavigate, children }: { activeSectio
             <span className="topbar__breadcrumb">GUARDIAN X <span aria-hidden="true">/</span> WORKSPACE</span>
             <h1>{activeSection}</h1>
           </div>
-          <div className="topbar__meta demo-badge"><span className="status-dot" aria-hidden="true" />Local session · no backend</div>
+          <div className="topbar__meta demo-badge"><span className="status-dot" aria-hidden="true" />{connectionLabel}</div>
         </header>
-        <main className="main-content" id="main-content" tabIndex={-1} ref={mainRef}>{children}</main>
+        <main className="main-content" id="main-content" tabIndex={-1} ref={mainRef}>{body}</main>
         <footer className="app-footer"><span>GUARDIAN X</span><span>Student Dismissal System</span></footer>
       </div>
     </div>

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { AdminPageHeading, DemoDataNotice } from '../components/AdminPage';
+import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
 import { Button, Card, CardHeading, DataTable, EmptyState, Toast } from '../components/ui';
 import type { AdminClass } from '../data/adminData';
 import { ClassDetailDialog, ClassEditorDialog } from '../features/admin/ClassDialogs';
 import { useAdminData } from '../features/admin/AdminDataContext';
 
 export default function ClassesPage() {
-  const { state } = useAdminData();
+  const { state, readOnly } = useAdminData();
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<AdminClass | undefined>();
   const [viewingClass, setViewingClass] = useState<AdminClass | null>(null);
@@ -18,8 +18,8 @@ export default function ClassesPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeading eyebrow="DIRECTORY" title="Classes" description="View class membership and the teacher assigned to each class." actions={<Button variant="primary" onClick={openAdd}><Plus size={15} aria-hidden="true" />Add class</Button>} />
-      <DemoDataNotice />
+      <AdminPageHeading eyebrow="DIRECTORY" title="Classes" description="View class membership and the teacher assigned to each class." actions={<Button variant="primary" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={openAdd}><Plus size={15} aria-hidden="true" />Add class</Button>} />
+      <DataSourceNotice />
       <Card className="admin-card">
         <CardHeading title="Class records" description={`${state.classes.length} classes`} />
         {state.classes.length ? <DataTable label="Class records" className="admin-table--classes">
@@ -32,7 +32,7 @@ export default function ClassesPage() {
               <td>{students.length}</td>
               <td>{teacher?.name ?? <span className="muted-copy">—</span>}</td>
               <td>{students.length ? <span className="student-name-list">{students.map((student) => student.name).join(', ')}</span> : <span className="muted-copy">No students</span>}</td>
-              <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingClass(schoolClass)}>View</Button><Button variant="ghost" size="sm" onClick={() => openEdit(schoolClass)}>Edit</Button></div></td>
+              <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingClass(schoolClass)}>View</Button><Button variant="ghost" size="sm" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => openEdit(schoolClass)}>Edit</Button></div></td>
             </tr>;
           })}</tbody>
         </DataTable> : <EmptyState title="No classes yet" description="Add a class to organize student records." />}

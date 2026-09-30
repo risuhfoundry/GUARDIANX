@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { ArrowUpRight, Check, ClipboardList, Clock3, Users } from 'lucide-react';
+import { ArrowUpRight, Check, ClipboardList, Clock3, Users, XCircle } from 'lucide-react';
 import { Button, Card, CardHeading, DataTable, EmptyState, StatusIndicator } from '../components/ui';
-import { AdminPageHeading, DemoDataNotice } from '../components/AdminPage';
-import { formatTime, localDateKey, type DismissalRequest } from '../data/adminData';
+import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
+import { dismissalStatusTone, formatTime, localDateKey, type DismissalRequest } from '../data/adminData';
 import { RequestDetailDialog } from '../features/admin/RequestDetailDialog';
 import { useAdminData } from '../features/admin/AdminDataContext';
 
@@ -10,6 +10,7 @@ const metrics = [
   { key: 'today', label: "Today's dismissal requests", icon: ClipboardList },
   { key: 'pending', label: 'Pending dismissal requests', icon: Clock3 },
   { key: 'approved', label: 'Approved dismissal requests', icon: Check },
+  { key: 'rejected', label: 'Rejected dismissal requests', icon: XCircle },
   { key: 'completed', label: 'Completed dismissal requests', icon: Users },
 ] as const;
 
@@ -23,14 +24,15 @@ export default function DashboardPage() {
     today: state.dismissalRequests.filter((request) => localDateKey(request.requestedAt) === todayKey).length,
     pending: state.dismissalRequests.filter((request) => request.status === 'Pending').length,
     approved: state.dismissalRequests.filter((request) => request.status === 'Approved').length,
+    rejected: state.dismissalRequests.filter((request) => request.status === 'Rejected').length,
     completed: state.dismissalRequests.filter((request) => request.status === 'Completed').length,
   };
   const recentRequests = [...state.dismissalRequests].sort((a, b) => Date.parse(b.requestedAt) - Date.parse(a.requestedAt)).slice(0, 5);
 
   return (
     <div className="admin-page">
-      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal overview" description="A focused view of dismissal activity in this local session." />
-      <DemoDataNotice />
+      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal overview" description="A focused view of dismissal activity from the live database." />
+      <DataSourceNotice />
       <section className="metric-grid" aria-label="Dismissal request summary">
         {metrics.map(({ key, label, icon: Icon }) => (
           <Card className="metric-card" key={key}>
@@ -56,7 +58,7 @@ export default function DashboardPage() {
                     <td><Button variant="ghost" size="sm" className="table-link" aria-label={`View dismissal request for ${student?.name ?? 'student'} at ${formatTime(request.requestedAt)}`} onClick={() => setSelectedRequest(request)}>{student?.name ?? '—'}<ArrowUpRight size={12} aria-hidden="true" /></Button></td>
                     <td>{schoolClass?.name ?? '—'}</td>
                     <td>{guardian?.name ?? '—'}</td>
-                    <td><StatusIndicator label={request.status} tone={request.status === 'Pending' ? 'pending' : 'success'} /></td>
+                    <td><StatusIndicator label={request.status} tone={dismissalStatusTone(request.status)} /></td>
                     <td>{formatTime(request.requestedAt)}</td>
                   </tr>
                 );

@@ -116,7 +116,7 @@ export function StudentEditorDialog({ editorOpen, student, onCloseEditor, onSave
 }
 
 export function StudentDetailDialog({ student, onClose, onEdit }: { student: AdminStudent | null; onClose: () => void; onEdit: (student: AdminStudent) => void }) {
-  const { state } = useAdminData();
+  const { state, readOnly } = useAdminData();
   if (!student) return null;
   const schoolClass = state.classes.find((item) => item.id === student.classId);
   const guardians = student.guardianIds.map((id) => state.guardians.find((item) => item.id === id)).filter((item) => item !== undefined);
@@ -132,7 +132,7 @@ export function StudentDetailDialog({ student, onClose, onEdit }: { student: Adm
           <dd>{guardians.length ? <div className="detail-palm-list">{guardians.map((guardian) => <span key={guardian.id}><strong>{guardian.name}</strong><StatusIndicator label={guardian.palmStatus} tone={guardian.palmStatus === 'Registered' ? 'success' : 'pending'} /></span>)}</div> : 'No linked guardians'}</dd>
         </div>
       </dl>
-      <div className="dialog__actions"><Button variant="secondary" onClick={onClose}>Close</Button><Button variant="primary" onClick={() => onEdit(student)}>Edit student</Button></div>
+      <div className="dialog__actions"><Button variant="secondary" onClick={onClose}>Close</Button><Button variant="primary" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => onEdit(student)}>Edit student</Button></div>
     </Dialog>
   );
 }

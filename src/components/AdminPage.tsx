@@ -9,6 +9,6 @@ export function AdminPageHeading({ eyebrow, title, description, actions }: { eye
   );
 }
 
-export function DemoDataNotice() {
-  return <aside className="demo-notice" role="note"><span className="status-dot" aria-hidden="true" />Class records are real. Changes stay in this browser session and reset on reload.</aside>;
+export function DataSourceNotice() {
+  return <aside className="demo-notice" role="note"><span className="status-dot" aria-hidden="true" />Records are read live from the Supabase database. Editing is disabled until accounts are added.</aside>;
 }
