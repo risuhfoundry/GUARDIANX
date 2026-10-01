@@ -1,33 +1,68 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import {
   BookOpen, ChevronLeft, ChevronRight, ClipboardList, GraduationCap,
-  LayoutDashboard, Menu, Settings2, Users, UserRound, X,
+  LayoutDashboard, LogOut, Menu, Settings2, Users, UserRound, X,
   type LucideIcon,
 } from 'lucide-react';
-import { Avatar, Dropdown, ErrorState, IconButton, Skeleton, cx } from '../components/ui';
+import { Avatar, Button, Dropdown, ErrorState, IconButton, Skeleton, cx } from '../components/ui';
 import { useAdminData } from '../features/admin/AdminDataContext';
+import { isAdminRole, roleLabel, useAuth, type AuthProfile } from '../features/auth/AuthContext';
 
-export const navigationItems = [
-  { label: 'Dashboard', icon: LayoutDashboard },
-  { label: 'Dismissal Requests', icon: ClipboardList },
-  { label: 'Students', icon: GraduationCap },
-  { label: 'Guardians', icon: Users },
-  { label: 'Classes', icon: BookOpen },
-  { label: 'Teachers', icon: UserRound },
-  { label: 'Settings', icon: Settings2 },
-] satisfies Array<{ label: string; icon: LucideIcon }>;
+const navigationItems = [
+  { label: 'Dashboard', icon: LayoutDashboard, adminOnly: false },
+  { label: 'Dismissal Requests', icon: ClipboardList, adminOnly: false },
+  { label: 'Students', icon: GraduationCap, adminOnly: false },
+  { label: 'Guardians', icon: Users, adminOnly: false },
+  { label: 'Classes', icon: BookOpen, adminOnly: true },
+  { label: 'Teachers', icon: UserRound, adminOnly: true },
+  { label: 'Settings', icon: Settings2, adminOnly: false },
+] satisfies Array<{ label: string; icon: LucideIcon; adminOnly: boolean }>;
 
 export type SectionName = (typeof navigationItems)[number]['label'];
 
+/**
+ * The sections a signed-in account may navigate to.
+ *
+ * Classes and Teachers are administration modules. A teacher's own rows are
+ * readable under RLS, but those pages would render as near-empty tables
+ * describing nobody, so they are not offered. This is presentation only: a
+ * teacher who reaches either page anyway still receives only what the
+ * `authenticated` RLS policies permit.
+ */
+export function visibleNavigation(role: AuthProfile['role'] | null | undefined): typeof navigationItems {
+  if (isAdminRole(role)) return navigationItems;
+  return navigationItems.filter((item) => !item.adminOnly);
+}
+
 function BrandMark() {
   return <img className="brand-mark" src="/guardian-mark.svg" alt="" width="32" height="32" />;
+}
+
+/**
+ * Two-letter initials from the profile's full name.
+ *
+ * `Avatar` takes initials as a prop rather than deriving them, so the signed-in
+ * user's name needs reducing here. Words that are not names — "Dr", initials
+ * already joined together, blank rows — are skipped so a profile saved as
+ * "Shruti" or "A. Rao" still yields two readable letters.
+ */
+function initialsFor(fullName: string): string {
+  const words = fullName.trim().split(/\s+/).filter(Boolean);
+  const skipped = new Set(['dr', 'mr', 'mrs', 'ms', 'miss', 'prof', 'sir', 'mam']);
+  const meaningful = words.filter((word) => !skipped.has(word.toLowerCase().replace(/\./g, '')));
+  const source = meaningful.length > 0 ? meaningful : words;
+  if (source.length === 0) return '?';
+  if (source.length === 1) return source[0].slice(0, 2).toUpperCase();
+  return (source[0][0] + source[source.length - 1][0]).toUpperCase();
 }
 
 function Sidebar({
   activeSection,
   collapsed,
   mobileOpen,
+  profile,
   onNavigate,
+  onSignOut,
   onToggleCollapsed,
   onCloseMobile,
   sidebarRef,
@@ -35,11 +70,26 @@ function Sidebar({
   activeSection: SectionName;
   collapsed: boolean;
   mobileOpen: boolean;
+  profile: AuthProfile;
   onNavigate: (section: SectionName) => void;
+  onSignOut: () => void;
   onToggleCollapsed: () => void;
   onCloseMobile: () => void;
   sidebarRef: RefObject<HTMLElement | null>;
 }) {
+  const items = visibleNavigation(profile.role);
+  const [signingOut, setSigningOut] = useState(false);
+
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await onSignOut();
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
   return (
     <>
       {mobileOpen && <button className="mobile-scrim" type="button" tabIndex={-1} aria-hidden="true" onClick={onCloseMobile} />}
@@ -59,7 +109,7 @@ function Sidebar({
 
         <div className="sidebar__nav-label">WORKSPACE</div>
         <nav className="sidebar__nav" id="primary-navigation">
-          {navigationItems.map(({ label, icon: Icon }) => {
+          {items.map(({ label, icon: Icon }) => {
             const isActive = activeSection === label;
             return (
               <button
@@ -84,16 +134,21 @@ function Sidebar({
             className="account-dropdown"
             label={
               <span className="account-trigger">
-                <Avatar name="School Administrator" initials="SA" size="sm" />
-                <span className="account-trigger__copy"><strong>School Administrator</strong><small>Administrator</small></span>
+                <Avatar name={profile.fullName} initials={initialsFor(profile.fullName)} size="sm" />
+                <span className="account-trigger__copy"><strong>{profile.fullName}</strong><small>{roleLabel(profile.role)}</small></span>
               </span>
             }
           >
             <div className="account-menu-card">
-              <Avatar name="School Administrator" initials="SA" size="md" />
-              <span><strong>School Administrator</strong><small>Administrator</small></span>
+              <Avatar name={profile.fullName} initials={initialsFor(profile.fullName)} size="md" />
+              <span><strong>{profile.fullName}</strong><small>{roleLabel(profile.role)}</small></span>
             </div>
-            <p className="account-menu-note">Account actions are reserved for a later implementation stage.</p>
+            <div className="account-menu-action">
+              <Button variant="ghost" size="sm" loading={signingOut} onClick={() => { void handleSignOut(); }}>
+                {!signingOut && <LogOut size={14} aria-hidden="true" />}
+                Sign out
+              </Button>
+            </div>
           </Dropdown>
         </div>
         <button
@@ -119,6 +174,18 @@ export function AppShell({ activeSection, onNavigate, children }: { activeSectio
   const mainRef = useRef<HTMLElement | null>(null);
   const isFirstRender = useRef(true);
   const { status, error } = useAdminData();
+  const { profile, signOut } = useAuth();
+
+  // AppShell renders only for an authenticated account, so a profile is always
+  // present by the time this returns. The guard below is the backstop; it has to
+  // sit after every hook, because returning early above one would change the
+  // hook count between renders.
+  //
+  // A teacher also cannot be stranded on Classes or Teachers by a stale
+  // navigation state, and the page title has to agree with what the sidebar
+  // offers.
+  const allowed = visibleNavigation(profile?.role);
+  const section = allowed.some((item) => item.label === activeSection) ? activeSection : allowed[0].label;
 
   // The badge reuses the existing "demo-badge" styling rather than introducing
   // a new visual treatment; only the wording changes.
@@ -172,17 +239,23 @@ export function AppShell({ activeSection, onNavigate, children }: { activeSectio
       return;
     }
     mainRef.current?.focus();
-  }, [activeSection]);
+  }, [section]);
+
+  // Rendering a shell with no identity is the one state that must never reach
+  // the screen. Unreachable while App mounts this only for authenticated users.
+  if (!profile) return null;
 
   return (
     <div className={cx('app-shell', collapsed && 'app-shell--collapsed')}>
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <Sidebar
-        activeSection={activeSection}
+        activeSection={section}
         collapsed={collapsed}
         mobileOpen={mobileOpen}
+        profile={profile}
         sidebarRef={sidebarRef}
         onNavigate={onNavigate}
+        onSignOut={signOut}
         onToggleCollapsed={() => setCollapsed((value) => !value)}
         onCloseMobile={() => setMobileOpen(false)}
       />
@@ -193,7 +266,7 @@ export function AppShell({ activeSection, onNavigate, children }: { activeSectio
           </IconButton>
           <div className="topbar__title">
             <span className="topbar__breadcrumb">GUARDIAN X <span aria-hidden="true">/</span> WORKSPACE</span>
-            <h1>{activeSection}</h1>
+            <h1>{section}</h1>
           </div>
           <div className="topbar__meta demo-badge"><span className="status-dot" aria-hidden="true" />{connectionLabel}</div>
         </header>

@@ -458,3 +458,25 @@ a { color: inherit; text-decoration: none; }
   .detail-row { grid-template-columns: 1fr; gap: 5px; }
   .dialog--wide .dialog__body { max-height: calc(100vh - 105px); }
 }
+
+/* Authentication — sign in and access denied */
+.auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px 18px; }
+.auth-panel { width: min(100%, 412px); padding: 30px 30px 26px; }
+.auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 26px; }
+.auth-panel__title { margin: 7px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; }
+.auth-panel__lead { margin: 9px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+.auth-form { display: grid; gap: 14px; margin-top: 22px; }
+.auth-form .form-error { display: flex; align-items: flex-start; gap: 7px; }
+.auth-form .form-error > svg { flex: 0 0 auto; margin-top: 1px; }
+.auth-submit { width: 100%; margin-top: 3px; }
+.auth-panel__foot { margin: 20px 0 0; padding-top: 15px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 10.5px; line-height: 1.5; }
+.auth-denied { display: grid; gap: 15px; justify-items: start; }
+.auth-denied__reason { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+
+@media (max-width: 430px) {
+  .auth-shell { padding: 16px 12px; }
+  .auth-panel { padding: 24px 20px 20px; }
+  .auth-brand { margin-bottom: 22px; }
+}
+.account-menu-action { padding: 7px 9px 5px; }
+.account-menu-action .button { width: 100%; }
