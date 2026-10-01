@@ -178,34 +178,55 @@ if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
   check('admin sees the whole class roster', (adminStudents.data ?? []).length === 18, `saw ${(adminStudents.data ?? []).length} of 18 students`);
   check('admin sees the whole guardian roster', (adminGuardians.data ?? []).length === 35, `saw ${(adminGuardians.data ?? []).length} of 35 guardians`);
 
-  // 8. An inactive account must not read data. Exercised by deactivating the
-  // caller's own profile row and restoring it immediately — is_admin() and every
-  // teacher policy both route through current_role(), which filters on
-  // is_active = true, so this proves the inactive path end to end.
-  const own = await admin.from('profiles').select('id, is_active').eq('id', (await admin.auth.getUser()).data.user.id).single();
-  if (own.error || !own.data) {
-    skip('inactive user cannot read protected data', `could not read own profile: ${own.error?.message}`);
-  } else {
-    const { error: deactivateError } = await admin.from('profiles').update({ is_active: false }).eq('id', own.data.id);
-    if (deactivateError) {
-      skip('inactive user cannot read protected data', `could not deactivate: ${deactivateError.message}`);
+  // 8. Inactive accounts must not read data.
+  //
+  // The end-to-end form of this check has to deactivate the caller's own profile,
+  // and that is destructive by construction. is_admin() and every teacher policy
+  // read current_role(), and current_role() filters on is_active = true — so the
+  // instant the account is deactivated, the admin UPDATE policy stops matching it.
+  // PostgREST applies RLS as a filter, so the restore writes zero rows and returns
+  // *no error*: the account is left disabled and the caller cannot undo it. That
+  // inability to self-reactivate is correct behaviour, and it is why this probe is
+  // opt-in. Reactivation has to go through the Dashboard or a privileged session.
+  //
+  // The two non-destructive conditions the denial actually rests on run every time:
+  // an active account must resolve exactly one profile row carrying a role, and it
+  // must see no other account's row.
+  const ownId = (await admin.auth.getUser()).data.user.id;
+  const own = await admin.from('profiles').select('id, is_active, role').eq('id', ownId).single();
+  check(
+    'active account resolves exactly one active profile row',
+    !own.error && own.data?.is_active === true,
+    own.error?.message ?? `is_active=${own.data?.is_active}`,
+  );
+  check('own profile carries a role', Boolean(own.data?.role), 'no role on own profile');
+  const otherVisible = await admin.from('profiles').select('id').neq('id', ownId).limit(5);
+  check(
+    'admin is not self-scoped and can read other profiles',
+    (otherVisible.data ?? []).length > 0,
+    'admin saw no other profile — admins are meant to manage accounts, so this should not be empty',
+  );
+
+  if (process.env.GUARDIANX_TEST_ALLOW_DEACTIVATION === '1') {
+    // DESTRUCTIVE. Leaves the account disabled if the restore cannot land, and
+    // only a privileged session can undo that.
+    const deactivated = await admin.from('profiles').update({ is_active: false }).eq('id', ownId).select('id');
+    if (deactivated.error || (deactivated.data ?? []).length === 0) {
+      check('inactive probe could deactivate', false, deactivated.error?.message ?? 'update matched 0 rows');
     } else {
       const afterDeactivate = await admin.from('students').select('id').limit(5);
-      const ownProfile = await admin.from('profiles').select('id').eq('id', own.data.id).limit(1);
+      const ownProfile = await admin.from('profiles').select('id').eq('id', ownId).limit(1);
+      check('inactive user cannot read protected data', (afterDeactivate.data ?? []).length === 0, `read ${(afterDeactivate.data ?? []).length} students while inactive`);
+      check('inactive user cannot read their own profile', (ownProfile.data ?? []).length === 0, 'profile row was still visible');
+
+      // Verify the restore by row count, not by absence of error — RLS filtering
+      // a write to zero rows is silent, which is how this used to false-pass.
+      const restored = await admin.from('profiles').update({ is_active: true }).eq('id', ownId).select('id');
       check(
-        'inactive user cannot read protected data',
-        (afterDeactivate.data ?? []).length === 0,
-        `read ${(afterDeactivate.data ?? []).length} students while inactive`,
+        'inactive probe restored the account',
+        !restored.error && (restored.data ?? []).length === 1,
+        restored.error?.message ?? 'restore matched 0 rows — REACTIVATE THIS ACCOUNT in the Supabase Dashboard',
       );
-      check(
-        'inactive user cannot read their own profile',
-        (ownProfile.data ?? []).length === 0,
-        'profile row was still visible',
-      );
-      // Restore. If this fails the account is left disabled, so it is reported
-      // loudly rather than silently.
-      const { error: restoreError } = await admin.from('profiles').update({ is_active: true }).eq('id', own.data.id);
-      check('inactive probe restored the account', !restoreError, restoreError?.message);
     }
   }
 
@@ -320,8 +341,12 @@ section('9, 10. Session lifecycle');
     const reloaded = withStorage();
     const restored = await reloaded.auth.getSession();
     check('refresh restores a valid authenticated session', restored.data.session !== null);
-    const readAfterRestore = await reloaded.from('students').select('id').limit(5);
-    check('restored session can read permitted data', !readAfterRestore.error && (readAfterRestore.data ?? []).length === 18);
+    const readAfterRestore = await reloaded.from('students').select('id').limit(50);
+    check(
+      'restored session can read permitted data',
+      !readAfterRestore.error && (readAfterRestore.data ?? []).length === 18,
+      readAfterRestore.error?.message ?? `saw ${(readAfterRestore.data ?? []).length} of 18 students`,
+    );
     await reloaded.auth.signOut();
   }
 }
@@ -335,6 +360,18 @@ if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
   skip('classes / students / guardians / links / requests unchanged', NEEDS_ACCOUNTS);
 } else {
   const admin = await signedInClient(ADMIN_EMAIL, ADMIN_PASSWORD);
+
+  // Guard: these counts are only meaningful if this session can read at all. A
+  // session that is valid but unpermitted returns zero everywhere, which would make
+  // every expected-zero assertion pass for the wrong reason. Fail the precondition
+  // first so a broken session cannot be mistaken for intact data.
+  const canRead = await admin.from('students').select('id').limit(1);
+  check(
+    'counting session can read data before counts are trusted',
+    !canRead.error && (canRead.data ?? []).length > 0,
+    canRead.error?.message ?? 'session read 0 rows',
+  );
+
   const counts = {
     classes: (await admin.from('classes').select('id')).data?.length,
     students: (await admin.from('students').select('id')).data?.length,
