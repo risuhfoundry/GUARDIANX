@@ -50,7 +50,7 @@ export default function GuardiansPage() {
         <CardHeading title="Guardian records" description={`${guardians.length} of ${state.guardians.length} guardians`} />
         <div className="table-toolbar"><SearchInput label="Search guardians" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
         {guardians.length ? <DataTable label="Guardian records" className="admin-table--guardians">
-          <thead><tr><th scope="col">Guardian</th><th scope="col">Linked student(s) · class</th><th scope="col">Palm registration status</th><th scope="col">Action</th></tr></thead>
+          <thead><tr><th scope="col">Guardian</th><th scope="col">Linked ward(s) · class</th><th scope="col">Palm registration</th><th scope="col">Action</th></tr></thead>
           <tbody>{guardians.map((guardian) => {
             const students = state.students.filter((student) => student.guardianIds.includes(guardian.id));
             return <tr key={guardian.id}>

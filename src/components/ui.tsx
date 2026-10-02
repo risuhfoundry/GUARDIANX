@@ -23,7 +23,7 @@ export function Button({ variant = 'secondary', size = 'md', loading = false, cl
       aria-busy={loading || undefined}
       {...props}
     >
-      {loading && <LoaderCircle className="button__spinner" size={15} aria-hidden="true" />}
+      {loading && <span className="button__spinner" aria-hidden="true"><LoaderCircle size={15} /></span>}
       {children}
     </button>
   );
@@ -116,7 +116,7 @@ export function CardHeading({ title, description, action }: { title: string; des
 }
 
 export function StatusIndicator({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'success' | 'warning' | 'danger' | 'pending' }) {
-  return <span className={cx('status', `status--${tone}`)}><span className="status__dot" aria-hidden="true" />{label}</span>;
+  return <span className={cx('status', `status--${tone}`)}><span className="status__dot" aria-hidden="true" /><span>{label}</span></span>;
 }
 
 export function Avatar({ name, initials, size = 'md' }: { name: string; initials: string; size?: 'sm' | 'md' | 'lg' }) {

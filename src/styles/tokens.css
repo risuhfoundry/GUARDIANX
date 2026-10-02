@@ -29,6 +29,13 @@
   --info: #8BA4E8;
   --info-soft: rgb(91 124 255 / 11%);
 
+  /* Derived surfaces used by components that need a deeper recess than --surface */
+  --surface-deep: #111317;
+  --surface-icon: #191B20;
+
+  /* Subtle borders for icon containers and decorative dividers */
+  --border-subtle: #2E3240;
+
   --sidebar-width: 252px;
   --sidebar-collapsed-width: 76px;
   --topbar-height: 78px;

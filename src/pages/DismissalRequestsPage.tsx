@@ -12,12 +12,12 @@ export default function DismissalRequestsPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal requests" description="See all requests. Open a request to review its student, guardian, teacher decision, status, and timestamp." />
+      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal requests" description="Review every request in the system. Open a row to see the student, guardian, teacher, status, and exact timestamp." />
       <DataSourceNotice />
       <Card className="admin-card">
         <CardHeading title="All dismissal requests" description={`${requests.length} requests`} />
         {requests.length ? <DataTable label="All dismissal requests" className="admin-table--requests">
-          <thead><tr><th scope="col">Student</th><th scope="col">Class</th><th scope="col">Guardian</th><th scope="col">Requested time</th><th scope="col">Teacher</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
+          <thead><tr><th scope="col">Student</th><th scope="col">Class</th><th scope="col">Guardian</th><th scope="col">Requested</th><th scope="col">Teacher</th><th scope="col">Status</th><th scope="col">Action</th></tr></thead>
           <tbody>{requests.map((request) => {
             const student = state.students.find((item) => item.id === request.studentId);
             const guardian = state.guardians.find((item) => item.id === request.guardianId);

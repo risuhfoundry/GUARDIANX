@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   return (
     <div className="admin-page">
-      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal overview" description="A focused view of dismissal activity from the live database." />
+      <AdminPageHeading eyebrow="OPERATIONS" title="Dismissal overview" description="Track today's activity, pending requests, and recent history from the live database." />
       <DataSourceNotice />
       <section className="metric-grid" aria-label="Dismissal request summary">
         {metrics.map(({ key, label, icon: Icon }) => (

@@ -11,7 +11,7 @@ export default function TeachersPage() {
       <Card className="admin-card">
         <CardHeading title="Teacher assignments" description={`${state.teachers.length} teachers`} />
         {state.teachers.length ? <DataTable label="Teacher assignments" className="admin-table--teachers">
-          <thead><tr><th scope="col">Teacher</th><th scope="col">Assigned class/classes</th><th scope="col">Status</th></tr></thead>
+          <thead><tr><th scope="col">Teacher</th><th scope="col">Assigned class</th><th scope="col">Status</th></tr></thead>
           <tbody>{[...state.teachers].sort((a, b) => a.name.localeCompare(b.name)).map((teacher) => {
             const classes = state.classes.filter((schoolClass) => schoolClass.teacherId === teacher.id);
             return <tr key={teacher.id}>

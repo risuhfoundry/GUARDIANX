@@ -61,7 +61,7 @@ export default function StudentsPage() {
                   <td><span className="table-primary">{student.name}</span></td>
                   <td>{student.admissionNumber}</td>
                   <td>{schoolClass?.name ?? '—'}</td>
-                  <td>{guardians.length ? <div className="guardian-table-list">{guardians.map((guardian) => <span className="guardian-table-line" key={guardian.id}><span>{guardian.name}</span><StatusIndicator label={guardian.palmStatus} tone={guardian.palmStatus === 'Registered' ? 'success' : 'pending'} /></span>)}</div> : <span className="muted-copy">No linked guardians · palm —</span>}</td>
+                  <td>{guardians.length ? <div className="guardian-table-list">{guardians.map((guardian) => <span className="guardian-table-line" key={guardian.id}><span className="guardian-table-line__name">{guardian.name}</span><StatusIndicator label={guardian.palmStatus} tone={guardian.palmStatus === 'Registered' ? 'success' : 'pending'} /></span>)}</div> : <span className="muted-copy">No linked guardians</span>}</td>
                   <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingStudent(student)}>View</Button><Button variant="ghost" size="sm" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => openEdit(student)}>Edit</Button></div></td>
                 </tr>
               );

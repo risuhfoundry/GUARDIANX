@@ -87,10 +87,10 @@ export default function LoginPage() {
           />
 
           {error && (
-            <p className="form-error" role="alert">
+            <div className="form-error" role="alert">
               <ShieldAlert size={14} aria-hidden="true" />
-              {error}
-            </p>
+              <span>{error}</span>
+            </div>
           )}
 
           <Button type="submit" variant="primary" size="lg" loading={submitting} className="auth-submit">

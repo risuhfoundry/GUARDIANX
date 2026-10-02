@@ -23,15 +23,14 @@ export default function ClassesPage() {
       <Card className="admin-card">
         <CardHeading title="Class records" description={`${state.classes.length} classes`} />
         {state.classes.length ? <DataTable label="Class records" className="admin-table--classes">
-          <thead><tr><th scope="col">Class name</th><th scope="col">Student count</th><th scope="col">Assigned teacher</th><th scope="col">Students</th><th scope="col">Action</th></tr></thead>
+          <thead><tr><th scope="col">Class</th><th scope="col">Students</th><th scope="col">Assigned teacher</th><th scope="col">Action</th></tr></thead>
           <tbody>{[...state.classes].sort((a, b) => a.name.localeCompare(b.name)).map((schoolClass) => {
             const students = state.students.filter((student) => student.classId === schoolClass.id);
             const teacher = state.teachers.find((item) => item.id === schoolClass.teacherId);
             return <tr key={schoolClass.id}>
               <td><span className="table-primary">{schoolClass.name}</span></td>
-              <td>{students.length}</td>
+              <td>{students.length ? <span className="student-name-list">{students.map((student) => student.name).join(', ')}</span> : <span className="muted-copy">—</span>}</td>
               <td>{teacher?.name ?? <span className="muted-copy">—</span>}</td>
-              <td>{students.length ? <span className="student-name-list">{students.map((student) => student.name).join(', ')}</span> : <span className="muted-copy">No students</span>}</td>
               <td><div className="row-actions"><Button variant="ghost" size="sm" onClick={() => setViewingClass(schoolClass)}>View</Button><Button variant="ghost" size="sm" disabled={readOnly} title={readOnly ? 'Editing is disabled until accounts are added' : undefined} onClick={() => openEdit(schoolClass)}>Edit</Button></div></td>
             </tr>;
           })}</tbody>
