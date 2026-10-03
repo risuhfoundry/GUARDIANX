@@ -4,6 +4,7 @@ import { cx } from '../../components/ui';
 import { inView, rise, stagger } from './motion';
 import { Eyebrow, SectionIntro } from './primitives';
 import { DismissalDemo, GuardianDemo, PalmDemo, StudentDemo } from './ShowcaseDemos';
+import { MotionSurface } from './MotionSurface';
 
 interface Feature {
   eyebrow: string;
@@ -15,31 +16,31 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    eyebrow: 'Student management',
+    eyebrow: 'Student records',
     title: ['Students,', 'organized.'],
-    body: 'Keep classes and student information structured in one focused workspace.',
-    points: ['Search by name, admission number or class', 'Filter the roster by class', 'Import students from an Excel workbook'],
+    body: 'Find a student, see their class and understand the guardian connections behind each record.',
+    points: ['Search by name or admission number', 'Filter the roster by class', 'View linked guardians and palm status'],
     visual: <StudentDemo />,
   },
   {
-    eyebrow: 'Guardian management',
+    eyebrow: 'Guardian directory',
     title: ['Guardians,', 'connected.'],
-    body: 'Link each guardian to the students they are responsible for, and see every connection in one place.',
+    body: 'See each guardian alongside their linked students, with the details that matter at dismissal.',
     points: ['Linked students and their classes', 'Palm registration state at a glance', 'Search by guardian or student name'],
     visual: <GuardianDemo />,
   },
   {
     eyebrow: 'Registered guardian palms',
     title: ['Registered for', 'verification.'],
-    body: 'Each guardian’s palm registration is recorded against their profile, alongside the students they are linked to.',
-    points: ['Registration status for every guardian', 'Shown wherever the guardian appears', 'Used as part of the dismissal workflow'],
+    body: 'See whether a guardian’s palm is registered, alongside the student connection it belongs to.',
+    points: ['Registered or not registered, clearly shown', 'Palm status within the guardian record', 'Linked student and class information'],
     visual: <PalmDemo />,
   },
   {
     eyebrow: 'Dismissal requests',
     title: ['Dismissal,', 'made clear.'],
-    body: 'Teachers raise a request; everyone sees the student, class, guardian and where the request stands.',
-    points: ['Raised by the teacher', 'Student, class and guardian on every request', 'Pending, approved, rejected or completed'],
+    body: 'Review the people behind each dismissal request and see where it stands, from pending to completed.',
+    points: ['Teacher and request time in context', 'Student, class and linked guardian', 'Pending, approved, rejected or completed'],
     visual: <DismissalDemo />,
   },
 ];
@@ -51,10 +52,10 @@ function ScrollVisual({ children }: { children: ReactNode }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'center center'] });
   const scale = useTransform(scrollYProgress, [0, 1], [reduce ? 1 : 0.94, 1]);
   const y = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : 60, 0]);
-  const opacity = useTransform(scrollYProgress, [0, 0.6], [0.3, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.6], [0.6, 1]);
   return (
-    <motion.div ref={ref} className="sc-visual" style={{ scale, y, opacity }}>
-      {children}
+    <motion.div ref={ref} className="sc-visual" style={reduce ? undefined : { scale, y, opacity }}>
+      <MotionSurface>{children}</MotionSurface>
     </motion.div>
   );
 }
@@ -79,14 +80,13 @@ function FeatureRow({ feature, index }: { feature: Feature; index: number }) {
 
 export function ProductShowcase() {
   return (
-    <section className="lp-section lp-showcase" aria-labelledby="showcase-title">
+    <section className="lp-section lp-showcase" data-nav-section="#product" aria-labelledby="showcase-title">
       <div className="lp-container">
         <SectionIntro
           id="showcase-title"
-          eyebrow="The product"
+          eyebrow="03 / The product"
           lines={['The system,', 'in focus.']}
-          lead="Four parts of one workspace. Every screen below is drawn from the same application, shown with sample data."
-          align="center"
+          lead="Student records, guardian connections, registered palms and dismissal requests. One focused workspace."
         />
         <div className="sc-rows">
           {FEATURES.map((feature, i) => <FeatureRow key={feature.eyebrow} feature={feature} index={i} />)}

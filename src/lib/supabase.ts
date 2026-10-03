@@ -1,26 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { readSupabaseConfig } from './supabaseConfig';
 
-// Only the browser-safe anon / publishable key is ever read here. The
-// service_role key is deliberately not referenced anywhere in the client
-// bundle, so it cannot be leaked by shipping this app.
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const config = readSupabaseConfig(import.meta.env);
+let client: SupabaseClient<Database> | null = null;
+let configurationError: string | null = config.ok ? null : config.message;
 
-export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
-
-// Session persistence is what makes a signed-in user survive a page refresh, and
-// auto-refresh keeps the access token valid without a manual re-login. Both were
-// switched off while the app ran unauthenticated; with Supabase Auth in front of
-// the workspace they have to be on, so the session stored by sign-in is restored
-// on the next load instead of silently dropping the user back to the login page.
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient<Database>(supabaseUrl, supabaseAnonKey, {
+if (config.ok) {
+  try {
+    client = createClient<Database>(config.url, config.publicKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
         flowType: 'implicit',
       },
-    })
-  : null;
+    });
+  } catch {
+    configurationError = 'Supabase could not initialize. Check this deployment’s public configuration and browser storage availability.';
+  }
+}
+
+export const supabase = client;
+export const supabaseConfigurationError = configurationError;
+export const isSupabaseConfigured = client !== null;

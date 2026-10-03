@@ -12,8 +12,8 @@ type Phase = 'idle' | 'detected' | 'verifying' | 'verified' | 'presented';
 const PHASES: Phase[] = ['idle', 'detected', 'verifying', 'verified', 'presented'];
 const DURATION: Record<Phase, number> = { idle: 1700, detected: 1500, verifying: 2300, verified: 1300, presented: 3800 };
 const CAPTION: Record<Phase, string> = {
-  idle: 'Awaiting guardian',
-  detected: 'Guardian detected',
+  idle: 'Awaiting palm',
+  detected: 'Palm presented',
   verifying: 'Verifying palm',
   verified: 'Verified',
   presented: 'Verified',
@@ -40,13 +40,14 @@ export function HeroProduct() {
   const ref = useRef<HTMLDivElement>(null);
   const visible = useInView(ref, { margin: '-10% 0px' });
   const reduce = useReducedMotion();
-  const phase = usePhaseLoop(visible, reduce);
+  const [paused, setPaused] = useState(false);
+  const phase = usePhaseLoop(visible && !paused, reduce);
   const step = PHASES.indexOf(phase);
   const approved = step >= 3;
   const guardianLit = step >= 1;
 
   return (
-    <div ref={ref} className="hero-product">
+    <div ref={ref} className={cx('hero-product', paused && 'is-paused')}>
       <MockWindow
         section="Dismissal Requests"
         title="Dismissal"
@@ -65,11 +66,7 @@ export function HeroProduct() {
               <div className="hp-fields">
                 <MockField label="Requested by">{featured.teacher}</MockField>
                 <MockField label="Status">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span key={approved ? 'a' : 'p'} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.35, ease }}>
-                      {approved ? <Status tone="success">Approved</Status> : <Status tone="pending" live>Pending</Status>}
-                    </motion.span>
-                  </AnimatePresence>
+                  <Status tone="pending">Pending</Status>
                 </MockField>
               </div>
             </MockCard>
@@ -102,16 +99,16 @@ export function HeroProduct() {
             </MockCard>
           </div>
 
-          <MockCard className="hp-verify" title="Palm verification" meta={<Status tone={approved ? 'success' : guardianLit ? 'accent' : 'neutral'} live={!approved && guardianLit}>{approved ? 'Complete' : 'Live'}</Status>}>
-            <PalmVisualization state={PALM[phase]} className="hp-verify__palm" />
+          <MockCard className="hp-verify" title="Palm verification" meta={<Status tone={approved ? 'success' : guardianLit ? 'accent' : 'neutral'} live={!approved && guardianLit}>{approved ? 'Verified' : 'Preview'}</Status>}>
+            <PalmVisualization state={PALM[phase]} animateScan={!paused} className="hp-verify__palm" />
             <div className="hp-verify__caption">
               <AnimatePresence mode="popLayout" initial={false}>
                 <motion.strong
                   key={CAPTION[phase]}
                   className={cx(approved && 'is-verified')}
-                  initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+                  initial={{ opacity: 0, y: 8, filter: reduce ? 'none' : 'blur(4px)' }}
                   animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -8, filter: 'blur(4px)' }}
+                  exit={{ opacity: 0, y: -8, filter: reduce ? 'none' : 'blur(4px)' }}
                   transition={{ duration: 0.4, ease }}
                 >
                   {CAPTION[phase]}
@@ -124,7 +121,7 @@ export function HeroProduct() {
             <motion.div
               className="hp-presented"
               initial={false}
-              animate={phase === 'presented' ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0.18, y: 6, filter: 'blur(3px)' }}
+              animate={phase === 'presented' ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0.18, y: 6, filter: reduce ? 'none' : 'blur(3px)' }}
               transition={{ duration: 0.6, ease }}
             >
               <span className="hp-presented__label">Student</span>
@@ -137,6 +134,9 @@ export function HeroProduct() {
           </MockCard>
         </div>
       </MockWindow>
+      <div className="hp-preview-controls"><span>Illustrative workflow · Sample data</span>
+        {!reduce && <button type="button" aria-pressed={paused} onClick={() => setPaused((value) => !value)}>{paused ? 'Play preview' : 'Pause preview'}<span aria-hidden="true">{paused ? '▷' : 'Ⅱ'}</span></button>}
+      </div>
     </div>
   );
 }

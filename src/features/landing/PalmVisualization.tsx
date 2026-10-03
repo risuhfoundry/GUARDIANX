@@ -1,5 +1,5 @@
-import { useId } from 'react';
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, type MotionValue } from 'motion/react';
+import { useId, useRef } from 'react';
+import { AnimatePresence, motion, useMotionValue, useInView, useReducedMotion, type MotionValue } from 'motion/react';
 import { cx } from '../../components/ui';
 import { ease } from './motion';
 
@@ -26,26 +26,29 @@ const STROKE: Record<PalmState, string> = {
   verified: 'rgba(134,194,159,0.95)',
 };
 const RING: Record<PalmState, number> = { idle: 0, detected: 0.1, scanning: 1, verified: 1 };
-const TICKS = Array.from({ length: 72 }, (_, i) => i * 5);
+const TICKS = Array.from({ length: 36 }, (_, i) => i * 10);
 
 export function PalmVisualization({
-  state, className, progress, size,
+  state, className, progress, size, animateScan = true,
 }: {
   state: PalmState;
   className?: string;
   /** Optional scroll-driven ring progress (0–1). Overrides the state-driven ring. */
   progress?: MotionValue<number>;
   size?: number;
+  animateScan?: boolean;
 }) {
   const id = useId().replace(/:/g, '');
   const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const visible = useInView(ref);
   const verified = state === 'verified';
   const ringColor = verified ? '#86C29F' : '#8EA2FF';
   const fallback = useMotionValue(0);
   const ringLength = progress ?? fallback;
 
   return (
-    <div className={cx('palm', `palm--${state}`, className)} style={size ? { width: size, height: size } : undefined} aria-hidden="true">
+    <div ref={ref} className={cx('palm', `palm--${state}`, className)} style={size ? { width: size, height: size } : undefined} aria-hidden="true">
       <svg viewBox="0 0 240 240" className="palm__svg">
         <defs>
           <radialGradient id={`${id}-glow`} cx="50%" cy="50%" r="50%">
@@ -88,7 +91,7 @@ export function PalmVisualization({
           <motion.circle
             cx="120" cy="120" r="104" className="palm__ring"
             transform="rotate(-90 120 120)"
-            initial={{ pathLength: 0 }}
+            initial={reduce ? false : { pathLength: 0 }}
             animate={{ pathLength: RING[state], stroke: ringColor }}
             transition={{ pathLength: { duration: reduce ? 0 : state === 'scanning' ? 2.1 : 0.7, ease: [0.45, 0, 0.2, 1] }, stroke: { duration: 0.5 } }}
           />
@@ -112,7 +115,7 @@ export function PalmVisualization({
 
         {/* A single soft band passes over the palm while verifying. */}
         <AnimatePresence>
-          {state === 'scanning' && !reduce && (
+          {state === 'scanning' && animateScan && !reduce && visible && (
             <motion.g key="band" clipPath={`url(#${id}-clip)`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               <motion.rect
                 x="0" width="240" height="56" fill={`url(#${id}-band)`}

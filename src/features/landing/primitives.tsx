@@ -1,13 +1,30 @@
 import type { MouseEvent, ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
 import { cx } from '../../components/ui';
 import { navigate, prefetchApp } from '../../lib/navigation';
-import { ease, inView, rise, stagger } from './motion';
+import { ease, fade, inView, lineReveal, rise, stagger } from './motion';
 
 /* ------------------------------------------------------------------ links */
 
 type LinkVariant = 'primary' | 'secondary' | 'ghost';
+
+/** Keep anchor navigation useful to keyboard users without leaving tab stops behind. */
+export function focusAnchorTarget(href: string) {
+  if (!href.startsWith('#')) return;
+  const target = document.getElementById(href.slice(1));
+  if (!target) return;
+  const previousTabIndex = target.getAttribute('tabindex');
+  target.setAttribute('tabindex', '-1');
+  target.focus({ preventScroll: true });
+  // Removing tabindex while the element is focused sends focus back to body
+  // in Chromium. Restore its original semantics only after focus moves on.
+  if (previousTabIndex === null) {
+    target.addEventListener('blur', () => target.removeAttribute('tabindex'), { once: true });
+  } else if (previousTabIndex !== '-1') {
+    target.setAttribute('tabindex', previousTabIndex);
+  }
+}
 
 /**
  * Anchor styled as a button. Internal paths use client-side navigation so the
@@ -27,9 +44,11 @@ export function CtaLink({
 }) {
   const internal = href.startsWith('/');
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    onClick?.();
-    if (!internal || event.defaultPrevented || event.button !== 0) return;
+    if (event.defaultPrevented || event.button !== 0) return;
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    onClick?.();
+    if (href.startsWith('#')) focusAnchorTarget(href);
+    if (!internal) return;
     event.preventDefault();
     navigate(href);
   }
@@ -92,6 +111,7 @@ export function SectionIntro({
   id?: string;
   className?: string;
 }) {
+  const reduce = useReducedMotion();
   return (
     <motion.div
       className={cx('lp-intro', `lp-intro--${align}`, className)}
@@ -103,7 +123,9 @@ export function SectionIntro({
       {eyebrow && <motion.div variants={rise}><Eyebrow>{eyebrow}</Eyebrow></motion.div>}
       <h2 className="lp-h2" id={id}>
         {lines.map((line) => (
-          <motion.span key={line} className="lp-line" variants={rise}>{line}</motion.span>
+          <span key={line} className="lp-line-mask">
+            <motion.span className="lp-line" variants={reduce ? fade : lineReveal}>{line}</motion.span>
+          </span>
         ))}
       </h2>
       {lead && <motion.p className="lp-lead" variants={rise}>{lead}</motion.p>}
@@ -113,10 +135,11 @@ export function SectionIntro({
 
 /** Generic one-shot reveal wrapper. */
 export function Reveal({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const reduce = useReducedMotion();
   return (
     <motion.div
       className={className}
-      variants={{ hidden: rise.hidden, show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.8, ease, delay } } }}
+      variants={{ hidden: reduce ? fade.hidden : rise.hidden, show: { opacity: 1, y: 0, transition: { duration: reduce ? 0.25 : 0.8, ease, delay: reduce ? 0 : delay } } }}
       initial="hidden"
       whileInView="show"
       viewport={inView}

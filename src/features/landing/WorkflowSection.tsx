@@ -1,102 +1,73 @@
 import { useRef, useState } from 'react';
-import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from 'motion/react';
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'motion/react';
 import { cx } from '../../components/ui';
-import { ease } from './motion';
+import { ease, inView } from './motion';
 import { SectionIntro } from './primitives';
-import { WORKFLOW_STEPS, WorkflowDemo } from './WorkflowDemo';
+import { WORKFLOW_STEPS, MobileWorkflowVisual, WorkflowDemo, workflowStep } from './WorkflowDemo';
 
-const COUNT = WORKFLOW_STEPS.length;
-
-/**
- * Scroll-driven workflow. The track is tall; a sticky stage inside it holds the
- * step list and the demo screen while scroll progress selects the step.
- */
 export function WorkflowSection() {
   const track = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
+  const stepRef = useRef(0);
   const { scrollYProgress } = useScroll({ target: track, offset: ['start start', 'end end'] });
-  const rail = useSpring(scrollYProgress, { stiffness: 140, damping: 30, mass: 0.6 });
-
+  const palmProgress = useTransform(scrollYProgress, [0.4, 0.6], [0.05, 1]);
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    const next = Math.min(COUNT - 1, Math.max(0, Math.floor(p * COUNT * 0.999)));
-    setStep((current) => (current === next ? current : next));
+    const next = workflowStep(p);
+    if (!reduce && next !== stepRef.current) { stepRef.current = next; setStep(next); }
   });
 
-  /** Jump the page to the scroll position that shows a given step. */
   function goTo(index: number) {
+    if (reduce) { setStep(index); return; }
     const el = track.current;
     if (!el) return;
     const top = el.getBoundingClientRect().top + window.scrollY;
     const travel = el.offsetHeight - window.innerHeight;
-    window.scrollTo({ top: top + travel * ((index + 0.5) / COUNT), behavior: 'smooth' });
+    window.scrollTo({ top: top + travel * ((index + 0.5) / WORKFLOW_STEPS.length), behavior: 'smooth' });
   }
 
   return (
     <section className="lp-section lp-workflow" id="how-it-works" aria-labelledby="workflow-title">
       <div className="lp-container">
-        <SectionIntro
-          id="workflow-title"
-          eyebrow="How it works"
-          lines={['From request', 'to verified dismissal.']}
-          lead="Five steps, one screen. Scroll to follow a single request from the classroom to the gate."
-        />
+        <SectionIntro id="workflow-title" eyebrow="02 / The dismissal workflow"
+          lines={['One request.', 'A connected journey.']}
+          lead="Follow Aarav’s dismissal, from the request details to guardian verification and student information." />
       </div>
-
-      <div ref={track} className="wf-track" style={{ height: `${COUNT * 85 + 40}vh` }}>
+      <div ref={track} className={cx('wf-track', reduce && 'wf-track--reduced')}>
         <div className="wf-sticky">
           <div className="lp-container wf-grid">
             <div className="wf-side">
+              <span className="wf-side__eyebrow">FOLLOW THE REQUEST</span>
               <div className="wf-steps">
-                <span className="wf-steps__rail" aria-hidden="true">
-                  <motion.span className="wf-steps__fill" style={{ scaleY: rail }} />
-                </span>
+                <span className="wf-steps__rail" aria-hidden="true"><motion.span className="wf-steps__fill" style={{ scaleY: reduce ? (step + 1) / 5 : scrollYProgress }} /></span>
                 <ol className="wf-steps__list">
                   {WORKFLOW_STEPS.map((s, i) => (
-                    <li key={s.short}>
-                      <button
-                        type="button"
-                        className={cx('wf-step', i === step && 'is-active', i < step && 'is-past')}
-                        aria-current={i === step ? 'step' : undefined}
-                        onClick={() => goTo(i)}
-                      >
-                        <span className="wf-step__n mono">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="wf-step__text">{s.text}</span>
-                      </button>
-                    </li>
+                    <li key={s.short}><button type="button" className={cx('wf-step', i === step && 'is-active', i < step && 'is-past')}
+                      aria-current={i === step ? 'step' : undefined} onClick={() => goTo(i)}>
+                      <span className="wf-step__n mono">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="wf-step__text"><strong>{s.text}</strong><span>{s.description}</span></span>
+                    </button></li>
                   ))}
                 </ol>
               </div>
-
-              {/* Compact caption for narrow screens, where the list is hidden. */}
-              <div className="wf-caption" aria-live="polite">
-                <span className="wf-caption__n mono">{String(step + 1).padStart(2, '0')} / {String(COUNT).padStart(2, '0')}</span>
-                <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.span
-                    key={step}
-                    className="wf-caption__text"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.35, ease }}
-                  >
-                    {WORKFLOW_STEPS[step].text}
-                  </motion.span>
-                </AnimatePresence>
-              </div>
+              <span className="wf-side__hint">{reduce ? 'Select a step to explore' : 'Scroll to follow · Select a step to jump'}</span>
             </div>
-
-            <motion.div
-              className="wf-demo"
-              initial={{ opacity: 0, y: 40, scale: 0.96 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '0px 0px -20% 0px' }}
-              transition={{ duration: 1, ease }}
-            >
-              <WorkflowDemo step={step} />
+            <motion.div className="wf-demo" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={inView} transition={{ duration: 0.7, ease }}>
+              <WorkflowDemo step={step} progress={palmProgress} />
+              <p className="wf-demo__note">Illustrative product workflow · Sample data</p>
             </motion.div>
           </div>
         </div>
       </div>
+      <ol className="lp-container wf-mobile">
+        {WORKFLOW_STEPS.map((s, i) => (
+          <motion.li key={s.short} className="wf-mobile__step" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={inView} transition={{ duration: 0.6, ease }}>
+            <div className="wf-mobile__heading"><span className="mono">{String(i + 1).padStart(2, '0')} / 05</span><h3>{s.text}</h3></div>
+            <p>{s.description}</p>
+            <MobileWorkflowVisual step={i} />
+          </motion.li>
+        ))}
+      </ol>
     </section>
   );
 }

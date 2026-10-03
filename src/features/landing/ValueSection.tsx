@@ -13,7 +13,7 @@ export function ValueSection() {
     <section className="lp-section lp-value" id="product" aria-labelledby="value-title">
       <div className="lp-container">
         <div className="lp-value__head">
-          <SectionIntro id="value-title" eyebrow="The idea" lines={['Built around', 'one simple idea.']} />
+          <SectionIntro id="value-title" eyebrow="01 / A focused system" lines={['Every dismissal starts', 'with a connection.']} />
           <motion.p
             className="lp-value__statement"
             initial={{ opacity: 0, y: 18 }}

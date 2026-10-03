@@ -51,36 +51,36 @@ export function MockWindow({
         <span className="mw__chrome-spacer" />
       </div>
       <div className="mw__body">
-        <aside className="mw__side">
+        <div className="mw__side">
           <div className="mw__brand">
             <BrandMark size={18} />
             <span><strong>GUARDIAN X</strong><small>Student Dismissal System</small></span>
           </div>
           <div className="mw__nav-label">Workspace</div>
-          <nav className="mw__nav">
+          <div className="mw__nav">
             {NAV.map(({ label: item, icon: Icon }) => (
               <span key={item} className={cx('mw__nav-item', item === section && 'is-active')}>
                 <Icon size={14} strokeWidth={1.8} />
                 <span>{item}</span>
               </span>
             ))}
-          </nav>
-          <div className="mw__account">
-            <span className="mw__avatar">KN</span>
-            <span><strong>Kavya Nair</strong><small>Teacher</small></span>
           </div>
-        </aside>
+          <div className="mw__account">
+            <span className="mw__avatar">GX</span>
+            <span><strong>Demo workspace</strong><small>Sample records</small></span>
+          </div>
+        </div>
         <div className="mw__main">
-          <header className="mw__top">
+          <div className="mw__top">
             <div className="mw__title">
               <span className="mw__crumb">GUARDIAN X / Workspace</span>
               <strong>{title ?? section}</strong>
             </div>
             <div className="mw__top-actions">
               {actions}
-              <Status tone="neutral" className="mw__demo">Demo data</Status>
+              <Status tone="neutral" className="mw__demo">Sample data</Status>
             </div>
-          </header>
+          </div>
           <div className="mw__content">{children}</div>
         </div>
       </div>

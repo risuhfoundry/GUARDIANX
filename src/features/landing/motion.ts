@@ -6,10 +6,21 @@ export const ease = [0.22, 1, 0.36, 1] as const;
 export const spring: Transition = { type: 'spring', stiffness: 100, damping: 20, mass: 1 };
 export const softSpring: Transition = { type: 'spring', stiffness: 70, damping: 20, mass: 1.2 };
 
-/** Opacity + rise + blur reduction. The default entrance for text blocks. */
+/** Text moves as a group; opacity keeps the same rhythm in reduced-motion mode. */
 export const rise: Variants = {
-  hidden: { opacity: 0, y: 24, filter: 'blur(8px)' },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: spring },
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease } },
+};
+
+export const fade: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.35, ease } },
+};
+
+/** Heading lines emerge from a quiet mask rather than floating into place. */
+export const lineReveal: Variants = {
+  hidden: { opacity: 0, y: '105%' },
+  show: { opacity: 1, y: '0%', transition: { duration: 0.8, ease } },
 };
 
 /** Parent that staggers its `rise` children. */

@@ -9,8 +9,9 @@ export function FinalCta() {
       <div className="lp-cta__glow" aria-hidden="true" />
       <div className="lp-container lp-cta__inner">
         <SectionIntro
+          eyebrow="GUARDIAN X"
           lines={['A clearer way', 'to manage dismissal.']}
-          lead="Explore GUARDIAN X and see how the complete workflow comes together."
+          lead="Keep students, guardians and the dismissal workflow connected in one focused workspace."
           align="center"
         />
         <motion.div
@@ -21,10 +22,10 @@ export function FinalCta() {
           viewport={inView}
         >
           <motion.div variants={rise}>
-            <CtaLink href="#product" variant="primary" size="lg" arrow>Explore GUARDIAN X</CtaLink>
+            <CtaLink href={APP_PATH} variant="primary" size="lg" arrow>Open GUARDIAN X</CtaLink>
           </motion.div>
           <motion.div variants={rise}>
-            <CtaLink href={APP_PATH} variant="secondary" size="lg">Sign in</CtaLink>
+            <CtaLink href="#how-it-works" variant="secondary" size="lg">Revisit the workflow</CtaLink>
           </motion.div>
         </motion.div>
       </div>
@@ -40,13 +41,13 @@ export function LandingFooter() {
           <strong>GUARDIAN X</strong>
           <small>Guardian-verified student dismissal.</small>
         </div>
-        <nav className="lp-footer__nav">
+        <nav className="lp-footer__nav" aria-label="Footer">
           <a href="#product">Product</a>
           <a href="#how-it-works">How it works</a>
           <a href={APP_PATH}>Sign in</a>
         </nav>
         <div className="lp-footer__copy">
-          © 2026 GUARDIAN X
+          © {new Date().getFullYear()} GUARDIAN X
         </div>
       </div>
     </footer>
