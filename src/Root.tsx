@@ -16,6 +16,17 @@ function isLandingPath(pathname: string): boolean {
   return pathname === '/' || pathname === '/index.html';
 }
 
+function LandingFallback() {
+  return (
+    <div className="lp-root">
+      <div className="lp-nav lp-nav--loading" aria-hidden="true" />
+      <div className="lp-main-loading" aria-hidden="true">
+        <span className="lp-main-loading__bar" />
+      </div>
+    </div>
+  );
+}
+
 export default function Root() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
@@ -30,7 +41,7 @@ export default function Root() {
   }, []);
 
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={isLandingPath(pathname) ? <LandingFallback /> : null}>
       {isLandingPath(pathname) ? <LandingPage /> : <App />}
     </Suspense>
   );

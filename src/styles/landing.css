@@ -361,6 +361,12 @@ html.guardian-landing { scroll-behavior: smooth; scroll-padding-top: 100px; }
 .lp-footer__nav a:hover { color: #fff; }
 .lp-footer__copy { color: var(--lp-text-muted); font-size: 10px; }
 
+/* Loading fallback for lazy landing route */
+.lp-nav--loading { position: fixed; inset: 0 0 auto; height: 72px; border-bottom: 1px solid transparent; background: transparent; }
+.lp-main-loading { min-height: 180px; margin-top: 144px; }
+.lp-main-loading__bar { display: block; width: min(260px, 28%); height: 10px; border-radius: 999px; background: #ffffff0d; animation: lp-pulse 1.4s ease-in-out infinite; }
+@keyframes lp-pulse { 0%, 100% { opacity: .35; } 50% { opacity: .75; } }
+
 /* Responsive layouts are recomposed, never scaled-down desktop screens. */
 @media (min-width: 1600px) { .lp-hero { padding-top: 170px; } .lp-hero__stage { margin-top: 65px; } }
 @media (max-width: 1199px) {

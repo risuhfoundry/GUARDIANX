@@ -2,7 +2,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 import { readSupabaseConfig } from './supabaseConfig';
 
-const config = readSupabaseConfig(import.meta.env);
+const env = import.meta.env ?? {};
+const config = readSupabaseConfig(env);
 let client: SupabaseClient<Database> | null = null;
 let configurationError: string | null = config.ok ? null : config.message;
 
