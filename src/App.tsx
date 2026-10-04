@@ -30,14 +30,18 @@ function AccessDenied({ reason }: { reason: string }) {
   const { signOut } = useAuth();
   return (
     <div className="auth-shell">
-      <Card className="auth-panel">
+      <div className="auth-panel">
+        <div className="auth-brand">
+          <img className="brand-mark" src="/guardian-mark.svg" alt="" width="28" height="28" />
+          <span className="brand__text"><strong>GUARDIAN X</strong><small>Student Dismissal System</small></span>
+        </div>
         <span className="eyebrow">ACCOUNT NOT PERMITTED</span>
         <h1 className="auth-panel__title">Access denied</h1>
         <div className="auth-denied">
           <p className="auth-denied__reason">{reason}</p>
           <Button variant="secondary" onClick={() => { void signOut(); }}>Sign out</Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { LockKeyhole, ShieldAlert } from 'lucide-react';
-import { Button, Card, ErrorState, Input } from '../components/ui';
+import { Button, Input } from '../components/ui';
 import { useAuth } from '../features/auth/AuthContext';
-
-function BrandMark() {
-  return <img className="brand-mark" src="/guardian-mark.svg" alt="" width="32" height="32" />;
-}
 
 /**
  * The only unauthenticated screen in the application.
@@ -41,30 +37,39 @@ export default function LoginPage() {
   if (!configured) {
     return (
       <div className="auth-shell">
-        <Card className="auth-panel">
-          <ErrorState
-            title="Supabase is not configured"
-            description="This deployment is missing VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, so no account can be checked. Nothing is shown rather than a login form that cannot work."
-          />
-        </Card>
+        <div className="auth-panel">
+          <div className="auth-brand">
+            <img className="brand-mark" src="/guardian-mark.svg" alt="" width="28" height="28" />
+            <span className="brand__text"><strong>GUARDIAN X</strong><small>Student Dismissal System</small></span>
+          </div>
+          <div className="auth-error">
+            <ShieldAlert size={16} aria-hidden="true" />
+            <div>
+              <strong>Supabase is not configured</strong>
+              <p>This deployment is missing VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, so no account can be checked.</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="auth-shell">
-      <Card className="auth-panel">
+      <div className="auth-panel">
         <div className="auth-brand">
-          <BrandMark />
+          <img className="brand-mark" src="/guardian-mark.svg" alt="" width="28" height="28" />
           <span className="brand__text"><strong>GUARDIAN X</strong><small>Student Dismissal System</small></span>
         </div>
 
-        <span className="eyebrow">STAFF ACCESS</span>
-        <h1 className="auth-panel__title">Sign in</h1>
-        <p className="auth-panel__lead">
-          Use the school account issued to you. Student and guardian records are only
-          shown to accounts authorised for them.
-        </p>
+        <div className="auth-header">
+          <span className="eyebrow">STAFF ACCESS</span>
+          <h1 className="auth-panel__title">Sign in</h1>
+          <p className="auth-panel__lead">
+            Use the school account issued to you. Student and guardian records are only
+            shown to accounts authorised for them.
+          </p>
+        </div>
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <Input
@@ -103,7 +108,7 @@ export default function LoginPage() {
           Accounts are issued by an administrator. If you cannot sign in, contact the
           school office.
         </p>
-      </Card>
+      </div>
     </div>
   );
 }

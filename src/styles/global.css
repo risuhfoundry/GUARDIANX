@@ -470,9 +470,14 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* Authentication — sign in and access denied */
-.auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px 18px; }
-.auth-panel { width: min(100%, 412px); padding: 30px 30px 26px; }
-.auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; }
+.auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px 18px; background: var(--background); }
+.auth-panel { width: min(100%, 400px); padding: 32px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); }
+.auth-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+.brand-mark { display: block; border-radius: 8px; }
+.brand__text { display: flex; flex-direction: column; gap: 1px; }
+.brand__text strong { font-size: 12px; font-weight: 700; letter-spacing: .055em; line-height: 1.25; color: var(--text-primary); }
+.brand__text small { color: var(--text-muted); font-size: 10px; line-height: 1.35; }
+.auth-header { margin-bottom: 24px; }
 .auth-panel__title { margin: 6px 0 0; font-size: 20px; font-weight: 600; letter-spacing: -.02em; line-height: 1.25; color: var(--text-primary); }
 .auth-panel__lead { margin: 8px 0 0; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
 .auth-form { display: grid; gap: 14px; margin-top: 22px; }
@@ -483,6 +488,10 @@ a { color: inherit; text-decoration: none; }
 .auth-panel__foot { margin: 20px 0 0; padding-top: 15px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 10.5px; line-height: 1.5; }
 .auth-denied { display: grid; gap: 15px; justify-items: start; }
 .auth-denied__reason { margin: 0; color: var(--text-secondary); font-size: 12px; line-height: 1.55; }
+.auth-error { display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #4A3134; border-radius: var(--radius-sm); background: #211719; color: var(--text-secondary); }
+.auth-error > svg { flex: 0 0 auto; margin-top: 2px; color: #BF888D; }
+.auth-error strong { display: block; margin-bottom: 2px; color: #CF9397; font-size: 11.5px; font-weight: 560; }
+.auth-error p { margin: 0; font-size: 11px; line-height: 1.5; }
 
 @media (max-width: 430px) {
   .auth-shell { padding: 16px 12px; }
