@@ -117,7 +117,7 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url);
-  const keyId = url.pathname.split("/").filter(Boolean).pop();
+  let keyId = url.pathname.split("/").filter(Boolean).pop();
   if (keyId === 'hardware-api-keys') keyId = null;
 
   try {
