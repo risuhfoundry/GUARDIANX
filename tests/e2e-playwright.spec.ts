@@ -40,10 +40,11 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
 
   // Create a new API key
   await page.fill('input[id="device-name"]', 'Playwright test device');
+  await page.on('console', msg => console.log('BROWSER CONSOLE:', msg.text()));
+  await page.on('pageerror', err => console.log('PAGE ERROR:', err.message));
   await page.click('button:has-text("Create API key")');
   await page.waitForTimeout(2000);
-  await page.screenshot({ path: 'test-results/hardware-after-create.png', fullPage: true });
-  console.log('hardware page text after create:', await page.locator('body').innerText().then(t => t.slice(0, 800)));
+  console.log('hardware page text after create:', await page.locator('body').innerText().then(t => t.slice(0, 1200)));
 
   // Wait for the secret to appear
   const secretBox = page.locator('.hardware-secret__value');
@@ -56,9 +57,13 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await page.click('button:has-text("Dismiss")');
   await expect(secretBox).not.toBeVisible();
 
+  // Debug: inspect what the page actually rendered after create.
+  await page.waitForTimeout(1000);
+  console.log('hardware page text:', await page.locator('body').innerText().then(t => t.slice(0, 1200)));
+
   // Find the created key row and open manage dialog
   const row = page.locator('table tbody tr:has-text("Playwright test device")');
-  await expect(row).toBeVisible();
+  await expect(row).toBeVisible({ timeout: 10_000 });
   await row.click();
 
   // Wait for dialog and revoke the key
