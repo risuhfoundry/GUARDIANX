@@ -1,10 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-const ADMIN_EMAIL = process.env.GUARDIANX_TEST_ADMIN_EMAIL;
-const ADMIN_PASSWORD = process.env.GUARDIANX_TEST_ADMIN_PASSWORD;
+const ADMIN_EMAIL = process.env.TEST_ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.TEST_ADMIN_PASSWORD;
 const BASE_URL = 'https://guardianx-gamma.vercel.app';
 
-test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'Set GUARDIANX_TEST_ADMIN_EMAIL and GUARDIANX_TEST_ADMIN_PASSWORD to run live browser verification.');
+test.skip(!ADMIN_EMAIL || !ADMIN_PASSWORD, 'Set TEST_ADMIN_EMAIL and TEST_ADMIN_PASSWORD to run live browser verification.');
 
 test.beforeEach(async ({ page }) => {
   page.setDefaultTimeout(30_000);
