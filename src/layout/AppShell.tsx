@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import {
-  BookOpen, ChevronLeft, ChevronRight, ClipboardList, GraduationCap,
+  BookOpen, ChevronLeft, ChevronRight, ClipboardList, Cog, GraduationCap,
   LayoutDashboard, LogOut, Menu, Settings2, Users, UserRound, X,
   type LucideIcon,
 } from 'lucide-react';
@@ -15,6 +15,7 @@ const navigationItems = [
   { label: 'Guardians', icon: Users, adminOnly: false },
   { label: 'Classes', icon: BookOpen, adminOnly: true },
   { label: 'Teachers', icon: UserRound, adminOnly: true },
+  { label: 'Hardware / API', icon: Cog, adminOnly: true },
   { label: 'Settings', icon: Settings2, adminOnly: false },
 ] satisfies Array<{ label: string; icon: LucideIcon; adminOnly: boolean }>;
 

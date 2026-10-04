@@ -11,6 +11,7 @@ const StudentsPage = lazy(() => import('./pages/StudentsPage'));
 const GuardiansPage = lazy(() => import('./pages/GuardiansPage'));
 const ClassesPage = lazy(() => import('./pages/ClassesPage'));
 const TeachersPage = lazy(() => import('./pages/TeachersPage'));
+const HardwarePage = lazy(() => import('./pages/HardwarePage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 function PageLoading() {
@@ -65,7 +66,8 @@ function Workspace() {
         : activeSection === 'Guardians' ? <GuardiansPage />
           : activeSection === 'Classes' ? <ClassesPage />
             : activeSection === 'Teachers' ? <TeachersPage />
-              : <SettingsPage />;
+              : activeSection === 'Hardware / API' ? <HardwarePage />
+                : <SettingsPage />;
 
   return (
     // Mounted only once authenticated, so signing out tears this down and every
