@@ -25,3 +25,4 @@ if (config.ok) {
 export const supabase = client;
 export const supabaseConfigurationError = configurationError;
 export const isSupabaseConfigured = client !== null;
+export const supabaseUrl = config.ok ? config.url : null;

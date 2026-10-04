@@ -3,6 +3,7 @@ import { Copy, EyeOff, RefreshCcw } from 'lucide-react';
 import { AdminPageHeading, DataSourceNotice } from '../components/AdminPage';
 import { Button, Card, CardHeading, DataTable, Dialog, EmptyState, SearchInput, StatusIndicator, Toast } from '../components/ui';
 import { useAdminData } from '../features/admin/AdminDataContext';
+import { supabaseUrl } from '../lib/supabase';
 
 type ApiKey = {
   id: string;
@@ -18,8 +19,8 @@ type ApiKeyResponse = {
   keys: ApiKey[];
 };
 
-const ENDPOINT = '/functions/v1/hardware-api-keys';
-const DISMISSAL_ENDPOINT = '/functions/v1/hardware-dismissal';
+const ENDPOINT = supabaseUrl ? `${supabaseUrl}/functions/v1/hardware-api-keys` : '/functions/v1/hardware-api-keys';
+const DISMISSAL_ENDPOINT = supabaseUrl ? `${supabaseUrl}/functions/v1/hardware-dismissal` : '/functions/v1/hardware-dismissal';
 
 async function adminFetch<T>(input: string, init?: RequestInit): Promise<T> {
   const session = await getSession();
