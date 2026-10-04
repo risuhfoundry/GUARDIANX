@@ -11,7 +11,8 @@
     "test": "node --env-file-if-exists=.env.local tests/rls-live.mjs && node tests/bundle-scan.mjs",
     "test:anon": "node --env-file-if-exists=.env.local tests/rls-live.mjs",
     "preview": "vite preview",
-    "test:unit": "tsx --test tests/supabase-config.test.mjs tests/auth-errors.test.mjs"
+    "test:unit": "tsx --test tests/supabase-config.test.mjs tests/auth-errors.test.mjs",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
@@ -23,12 +24,18 @@
     "read-excel-file": "^9.3.10"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jiti": "^2.7.0",
     "tsx": "^4.23.15",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.71.0",
     "vite": "^7.0.0"
   },
   "engines": {

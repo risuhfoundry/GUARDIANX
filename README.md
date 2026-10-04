@@ -183,38 +183,42 @@ The seed migration contains a school roster described by its source comments as 
 
 ### Firmware-side contract
 
-**`POST /api/gate/verify` is called by the firmware but has no server implementation in this repository.** `API_BASE_URL` is currently a placeholder in [Hardware/src/main.cpp](Hardware/src/main.cpp). Deploying the web app alone does not supply this endpoint.
+The device endpoint is implemented as a Supabase Edge Function, not as a route in the Vite app. The firmware must send requests to the Supabase project's function URL, e.g. `https://<project-ref>.supabase.co/functions/v1/hardware-dismissal`.
+
+Configure `API_BASE_URL` in the firmware to that full function URL. The device authenticates with an API key issued from **Hardware / API** in the staff workspace.
 
 The firmware sends:
 
 ```http
-POST /api/gate/verify
+POST /functions/v1/hardware-dismissal
 Content-Type: application/json
-X-API-Key: <device-api-key>
+Authorization: Bearer <device-api-key>
 
-{"device_id":"GATE_01","palm_id":1003}
+{"student_id":"...","guardian_id":"...","palm_id":"...","device_id":"GATE_01"}
 ```
 
-The device key comes from `GUARDIANX_DEVICE_API_KEY`, which PlatformIO injects as the C++ `DEVICE_API_KEY` macro. An empty key stops the request locally. There is no included device-registration screen, key-issuance workflow, or server-side key validation to document.
+The device key comes from `GUARDIANX_DEVICE_API_KEY`, which PlatformIO injects as the C++ `DEVICE_API_KEY` macro. An empty key stops the request locally.
 
-An illustrative response matching the existing client parser is:
+A successful verification response looks like:
 
 ```json
 {
-  "status": "VERIFIED",
-  "student_name": "Example Student",
-  "class_name": "Example Class"
+  "verified": true,
+  "request_id": "...",
+  "dismissed_at": "...",
+  "student": {"id":"...","name":"...","admission_number":"..."},
+  "guardian": {"id":"...","name":"..."},
+  "class": {"id":"...","name":"...","section":"..."}
 }
 ```
 
-Response handling, in source order:
+Failure responses include:
 
-1. Transport failures produce an error display; HTTP `401` or `403` produces “AUTH FAILED.”
-2. Invalid JSON produces an error display.
-3. A JSON `status` of `VERIFIED` displays the returned student and class, with fallback labels if those fields are absent. This check currently occurs before the `5xx` check.
-4. Other `5xx` responses produce an error display; remaining JSON responses produce “NOT REGISTERED.”
+```json
+{"verified": false, "reason": "Palm identifier does not match the registered palm."}
+```
 
-These are client expectations, not a verified backend API guarantee. Guardian lookup, guardian–student validation at the device endpoint, request creation, and dismissal decisions still need the missing server integration.
+The Edge Function validates the API key, checks that the guardian palm is registered and matches the presented `palm_id`, confirms the guardian is linked to the student, looks up the student's class, and creates a `dismissal_requests` row with status `Completed`. Admin API keys are managed through the separate `hardware-api-keys` Edge Function.
 
 ### Firmware setup
 
