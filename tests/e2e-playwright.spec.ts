@@ -33,9 +33,10 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await page.click('button[type="submit"]');
   await page.waitForURL((url) => url.pathname.startsWith('/app'), { timeout: 15_000 });
 
-  // Navigate to Hardware / API. Section changes are client-side only, so wait
-  // for the page heading instead of a URL change.
-  await page.click('text=Hardware / API');
+  // Navigate to Hardware / API via the sidebar button. The page heading
+  // shares the same text as the Integration endpoints card, so we must
+  // target the nav button explicitly.
+  await page.click('nav#primary-navigation button[aria-label="Hardware / API"]');
   await page.getByRole('heading', { name: 'Hardware / API' }).waitFor({ timeout: 15_000 });
 
   // Create a new API key
@@ -53,8 +54,11 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await page.click('button:has-text("Dismiss")');
   await expect(secretBox).not.toBeVisible();
 
+  // Wait for the table to refresh after dismiss
+  await page.waitForSelector('.admin-table--keys tbody tr', { state: 'visible', timeout: 15_000 });
+
   // Find the created key row and open manage dialog
-  const row = page.locator('table tbody tr:has-text("Playwright test device")');
+  const row = page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
   await row.click();
 
@@ -65,5 +69,5 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await expect(dialog).not.toBeVisible();
 
   // Confirm status shows revoked
-  await expect(page.locator('table tbody tr:has-text("Playwright test device") .status-indicator')).toHaveText('revoked');
+  await expect(page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first().locator('.status-indicator')).toHaveText('revoked');
 });
