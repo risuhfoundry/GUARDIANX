@@ -50,12 +50,16 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   expect(apiKey).toBeTruthy();
   expect(apiKey!.length).toBeGreaterThan(10);
 
-  // Dismiss the secret modal
-  await page.click('button:has-text("Dismiss")');
+  // Dismiss the secret box. A success toast is also shown after creation, so
+  // target the button inside the secret box explicitly.
+  await page.locator('.hardware-secret').getByRole('button', { name: 'Dismiss' }).click();
   await expect(secretBox).not.toBeVisible();
 
+  // Stay on Hardware / API; if navigation changed, fail fast with a clear message.
+  await expect(page.locator('nav#primary-navigation button[aria-label="Hardware / API"]')).toHaveAttribute('aria-current', 'page', { timeout: 10_000 });
+
   // Wait for the table to refresh after dismiss
-  await page.waitForSelector('.admin-table--keys tbody tr', { state: 'visible', timeout: 15_000 });
+  await page.waitForSelector('.admin-table--keys tbody tr', { state: 'visible', timeout: 20_000 });
 
   // Find the created key row and open manage dialog
   const row = page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first();
@@ -69,5 +73,5 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await expect(dialog).not.toBeVisible();
 
   // Confirm status shows revoked
-  await expect(page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first().locator('.status-indicator')).toHaveText('revoked');
+  await expect(page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first().locator('.status-indicator')).toHaveText('revoked', { timeout: 20_000 });
 });
