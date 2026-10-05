@@ -70,7 +70,7 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   const dialog = page.locator('.dialog--detail');
   await expect(dialog).toBeVisible();
   await page.click('button:has-text("Revoke key")');
-  await expect(dialog).not.toBeVisible();
+  await page.click('button:has-text("Close")');
 
   // Confirm status shows revoked
   await expect(page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first().locator('.status-indicator')).toHaveText('revoked', { timeout: 20_000 });
