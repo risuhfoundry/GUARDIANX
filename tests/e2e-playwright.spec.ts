@@ -61,10 +61,10 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   // Wait for the table to refresh after dismiss
   await page.waitForSelector('.admin-table--keys tbody tr', { state: 'visible', timeout: 20_000 });
 
-  // Find the created key row and open manage dialog
+  // Find the created key row and open manage dialog via its Manage button.
   const row = page.locator('.admin-table--keys tbody tr').filter({ hasText: 'Playwright test device' }).first();
   await expect(row).toBeVisible({ timeout: 10_000 });
-  await row.click();
+  await row.getByRole('button', { name: 'Manage' }).click();
 
   // Wait for dialog and revoke the key
   const dialog = page.locator('.dialog--detail');
