@@ -75,5 +75,5 @@ test('Admin Hardware/API page: generate and revoke an API key', async ({ page })
   await page.click('button:has-text("Close")');
 
   // Confirm status shows revoked for the created key
-  await expect(page.locator(`.admin-table--keys tbody tr`).filter({ hasText: keyPrefix }).first().locator('.status-indicator')).toHaveText('revoked', { timeout: 20_000 });
+  await expect(page.locator(`.admin-table--keys tbody tr`).filter({ hasText: keyPrefix }).first().locator('.status')).toHaveText('revoked', { timeout: 20_000 });
 });
